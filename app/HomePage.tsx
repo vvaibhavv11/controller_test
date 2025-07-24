@@ -8,17 +8,20 @@ import {
 } from "react-native";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { useNavigation } from "@react-navigation/native";
-// import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-// import { type RootStackParamList } from "./App";
+import { drizzle } from "drizzle-orm/expo-sqlite";
+import { useSQLiteContext } from "expo-sqlite";
+import * as schema from "@/db/schema";
+import { ButtonCordinates } from "./Editing_layout";
 
-const data = [
-	{ id: "1", title: "Apple" },
-	{ id: "2", title: "Banana" },
-	{ id: "3", title: "Mango" },
-];
-
+// const data = [
+// 	{ id: "1", title: "Apple" },
+// 	{ id: "2", title: "Banana" },
+// 	{ id: "3", title: "Mango" },
+// ];
 
 export default function HomeScreen() {
+	const db = drizzle(useSQLiteContext(), { schema });
+	const data = db.select().from(schema.layouts).all();
 	const navigation = useNavigation();
 	const lock = async () => {
 		await ScreenOrientation.lockAsync(
@@ -30,13 +33,17 @@ export default function HomeScreen() {
 		<View style={styles.container}>
 			<FlatList
 				data={data}
-				keyExtractor={(item) => item.id}
+				keyExtractor={(item) => String(item.id)}
 				renderItem={({ item }) => (
 					<TouchableOpacity
 						style={styles.item}
-						onPress={() => navigation.navigate("EditingLayout", { item })}
+						onPress={() =>
+							navigation.navigate("MainController", {
+								layoutCor: JSON.parse(item.layoutSchema),
+							})
+						}
 					>
-						<Text style={styles.text}>{item.title}</Text>
+						<Text style={styles.text}>{item.name}</Text>
 					</TouchableOpacity>
 				)}
 			/>

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "7320db67-7406-4cab-811d-ead4ca9ad1f2",
+  "id": "eb213a6e-9665-4ad9-9924-0828b71e95fe",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "layout": {
@@ -25,7 +25,7 @@
           "name": "layout_schema",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         }
       },

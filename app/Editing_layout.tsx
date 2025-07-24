@@ -1,12 +1,21 @@
 import React from "react";
-import { StyleSheet, TouchableOpacity, View, Text } from "react-native";
+import { StyleSheet, TouchableOpacity, View, Text, Alert } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import * as ScreenOrientation from "expo-screen-orientation";
 import SelectList from "./components/SelectView";
-import { xboxButtons } from "./xboxButtonsRegistry";
 import Draggable from "./components/Draggable";
+import { useNavigation, usePreventRemove } from "@react-navigation/native";
+import {
+	ChevronRight,
+	ChevronUp,
+	ChevronDown,
+	ChevronLeft,
+} from "lucide-react-native";
+import { drizzle } from "drizzle-orm/expo-sqlite";
+import { useSQLiteContext } from "expo-sqlite";
+import * as schema from "@/db/schema";
 
-type ButtonCordinates = {
+export type ButtonCordinates = {
 	[name: string]: {
 		px: number;
 		py: number;
@@ -16,27 +25,65 @@ type ButtonCordinates = {
 export default function EditingLayout() {
 	const itemRefs = React.useRef<{ [key: string]: View | null }>({});
 	const [buttonCor, setButtonCor] = React.useState<ButtonCordinates>();
-    React.useEffect(() => {
-        const lock = async () => {
-            await ScreenOrientation.lockAsync(
-                ScreenOrientation.OrientationLock.LANDSCAPE,
-            );
-        };
-
-        lock().catch(console.error);
-        console.log("Updated buttonCor:", buttonCor);
-
-        // (Optional) return a cleanup function if needed:
-        // return () => { /* cleanup resources here */ };
-    }, [buttonCor]);
 	const [visibleModal, setVisibleModal] = React.useState(false);
 	const [visibleButtons, setVisibleButtons] = React.useState<string[]>([]);
+	const navigation = useNavigation();
+	const unSaved = Boolean(buttonCor);
+	const db = drizzle(useSQLiteContext(), { schema });
+
+	usePreventRemove(unSaved, ({ data }) => {
+		Alert.alert(
+			"Save changes?",
+			"You have unsaved changes. Save them and leave the screen?",
+			[
+				{
+					text: "Don't leave",
+					style: "cancel",
+					onPress: () => {},
+				},
+				{
+					text: "Save",
+					style: "default",
+					onPress: async () => {
+						const count = await db.$count(schema.layouts);
+						const result = await db
+							.insert(schema.layouts)
+							.values({
+								name: `default${count}`,
+								layoutSchema: JSON.stringify(buttonCor),
+							})
+							.returning({ id: schema.layouts.id });
+						if (result) {
+							console.log(result);
+							return navigation.dispatch(data.action);
+						}
+					},
+				},
+			],
+		);
+	});
+
+	React.useEffect(() => {
+		const lock = async () => {
+			await ScreenOrientation.lockAsync(
+				ScreenOrientation.OrientationLock.LANDSCAPE,
+			);
+		};
+
+		lock().catch(console.error);
+		console.log("Updated buttonCor:", buttonCor);
+
+		// (Optional) return a cleanup function if needed:
+		// return () => { /* cleanup resources here */ };
+	}, [buttonCor]);
+
 	const addButton = (name: string) => {
 		if (!visibleButtons.includes(name)) {
 			setVisibleButtons([...visibleButtons, name]);
 		}
 		setVisibleModal(false);
 	};
+
 	const measurePosition = (name: string) => {
 		const view = itemRefs.current[name];
 		if (view?.measure) {
@@ -51,6 +98,7 @@ export default function EditingLayout() {
 			});
 		}
 	};
+
 	return (
 		<SafeAreaProvider>
 			<SafeAreaView style={styles.container}>
@@ -69,7 +117,8 @@ export default function EditingLayout() {
 									</View>
 								</Draggable>
 							);
-						} else {
+						}
+						if (name === "A" || name === "B" || name === "Y" || name === "X") {
 							return (
 								<Draggable key={name} onChange={() => measurePosition(name)}>
 									<View
@@ -83,6 +132,74 @@ export default function EditingLayout() {
 								</Draggable>
 							);
 						}
+						if (name === "D_LEFT") {
+							return (
+								<Draggable key={name} onChange={() => measurePosition(name)}>
+									<View
+										style={styles.draggable_dpad_button}
+										ref={(r) => {
+											itemRefs.current[name] = r;
+										}}
+									>
+										<ChevronLeft />
+									</View>
+								</Draggable>
+							);
+						}
+						if (name === "D_RIGHT") {
+							return (
+								<Draggable key={name} onChange={() => measurePosition(name)}>
+									<View
+										style={styles.draggable_dpad_button}
+										ref={(r) => {
+											itemRefs.current[name] = r;
+										}}
+									>
+										<ChevronRight />
+									</View>
+								</Draggable>
+							);
+						}
+						if (name === "D_UP") {
+							return (
+								<Draggable key={name} onChange={() => measurePosition(name)}>
+									<View
+										style={styles.draggable_dpad_button}
+										ref={(r) => {
+											itemRefs.current[name] = r;
+										}}
+									>
+										<ChevronUp />
+									</View>
+								</Draggable>
+							);
+						}
+						if (name === "D_DOWN") {
+							return (
+								<Draggable key={name} onChange={() => measurePosition(name)}>
+									<View
+										style={styles.draggable_dpad_button}
+										ref={(r) => {
+											itemRefs.current[name] = r;
+										}}
+									>
+										<ChevronDown />
+									</View>
+								</Draggable>
+							);
+						}
+						return (
+							<Draggable key={name} onChange={() => measurePosition(name)}>
+								<View
+									style={styles.draggable_rest_button}
+									ref={(r) => {
+										itemRefs.current[name] = r;
+									}}
+								>
+									<Text style={styles.draggable_text}>{name}</Text>
+								</View>
+							</Draggable>
+						);
 					}
 				})}
 				<TouchableOpacity
@@ -136,7 +253,27 @@ const styles = StyleSheet.create({
 		width: 75,
 		backgroundColor: "#014442",
 		borderRadius: 100,
-		borderWidth: 4,
+		borderWidth: 2,
+		borderColor: "#2C3A1C",
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	draggable_dpad_button: {
+		height: 50,
+		width: 50,
+		backgroundColor: "#014442",
+		borderRadius: 100,
+		borderWidth: 2,
+		borderColor: "#2C3A1C",
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	draggable_rest_button: {
+		height: 40,
+		width: 80,
+		backgroundColor: "#014442",
+		borderRadius: 100,
+		borderWidth: 2,
 		borderColor: "#2C3A1C",
 		justifyContent: "center",
 		alignItems: "center",

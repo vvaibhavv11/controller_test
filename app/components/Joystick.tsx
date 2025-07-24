@@ -1,22 +1,7 @@
 import { useRef } from "react";
 import { Animated, PanResponder, View, StyleSheet } from "react-native";
 
-export function L_Joystick() {
-	// const panOuter = useRef(new Animated.ValueXY()).current;
-	// const panResOuter = useRef(
-	// 	PanResponder.create({
-	// 		onMoveShouldSetPanResponder: () => true,
-	// 		onPanResponderMove: Animated.event(
-	// 			[null, { dx: panOuter.x, dy: panOuter.y }],
-	// 			{
-	// 				useNativeDriver: false,
-	// 			},
-	// 		),
-	// 		onPanResponderRelease: () => {
-	// 			panOuter.extractOffset();
-	// 		},
-	// 	}),
-	// ).current;
+export function Joystick({ x, y }: { x: number; y: number }) {
 	const panInner = useRef(new Animated.ValueXY()).current;
 	const panResInner = useRef(
 		PanResponder.create({
@@ -61,7 +46,7 @@ export function L_Joystick() {
 	).current;
 
 	return (
-		<View style={styles.buttonOuter}>
+		<View style={[styles.buttonOuter, { left: x, top: y }]}>
 			<Animated.View
 				style={{
 					transform: [{ translateX: panInner.x }, { translateY: panInner.y }],
@@ -76,6 +61,7 @@ export function L_Joystick() {
 
 const styles = StyleSheet.create({
 	buttonOuter: {
+		position: "absolute",
 		height: 100,
 		width: 100,
 		opacity: 100,

@@ -1,20 +1,22 @@
 import React, { Suspense } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import EditingLayout from "./Editing_layout";
+import EditingLayout, { ButtonCordinates } from "./Editing_layout";
 import HomeScreen from "./HomePage";
 import { ActivityIndicator } from "react-native";
 import { openDatabaseSync, SQLiteProvider } from "expo-sqlite";
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migration from "@/drizzle/migrations";
+import { MainController } from "./components/MainController";
 
 export type RootStackParamList = {
 	Home: undefined;
+	MainController: { layoutCor: ButtonCordinates };
 	EditingLayout: undefined;
 };
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 export const DATABASE_NAME = "controller";
 
 declare global {
@@ -35,11 +37,13 @@ export default function App() {
 				useSuspense
 			>
 				<NavigationContainer>
-					<Stack.Navigator
-						initialRouteName="Home"
-						screenOptions={{ headerShown: false }}
-					>
+					<Stack.Navigator initialRouteName="Home">
 						<Stack.Screen name="Home" component={HomeScreen} />
+						<Stack.Screen
+							name="MainController"
+							component={MainController}
+							initialParams={{ layoutCor: { def: { px: 0, py: 0 } } }}
+						/>
 						<Stack.Screen name="EditingLayout" component={EditingLayout} />
 					</Stack.Navigator>
 				</NavigationContainer>
