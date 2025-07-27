@@ -71,11 +71,7 @@ export default function EditingLayout() {
 		};
 
 		lock().catch(console.error);
-		console.log("Updated buttonCor:", buttonCor);
-
-		// (Optional) return a cleanup function if needed:
-		// return () => { /* cleanup resources here */ };
-	}, [buttonCor]);
+	}, []);
 
 	const addButton = (name: string) => {
 		if (!visibleButtons.includes(name)) {

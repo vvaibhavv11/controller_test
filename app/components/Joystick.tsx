@@ -1,64 +1,57 @@
-import { useRef } from "react";
-import { Animated, PanResponder, View, StyleSheet } from "react-native";
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+	useSharedValue,
+	useAnimatedStyle,
+	withSpring,
+} from "react-native-reanimated";
 
-export function Joystick({ x, y }: { x: number; y: number }) {
-	const panInner = useRef(new Animated.ValueXY()).current;
-	const panResInner = useRef(
-		PanResponder.create({
-			onMoveShouldSetPanResponder: () => true,
-			onPanResponderMove: (evt, gestureState) => {
-				console.log(gestureState);
-				const squre_x = gestureState.dx * gestureState.dx;
-				const squre_Y = gestureState.dy * gestureState.dy;
-				const distance = Math.sqrt(squre_x + squre_Y);
+type JoystickProps = { x: number; y: number };
 
-				if (distance > 50) {
-					const slope = gestureState.dy / gestureState.dx;
-					const deno = Math.sqrt(1 + slope * slope);
-					let dx;
-					let dy;
-					if (gestureState.dx < 0) {
-						dx = -50 / deno;
-						dy = (-50 * slope) / deno;
-					} else {
-						dx = 50 / deno;
-						dy = (50 * slope) / deno;
-					}
-					console.log("slope: ", slope);
-					console.log("x: ", dx);
-					console.log("y: ", dy);
-					panInner.setValue({ x: dx, y: dy });
-					return;
-				}
-				return Animated.event([null, { dx: panInner.x, dy: panInner.y }], {
-					useNativeDriver: false,
-				})(evt, gestureState);
-			},
-			// console.log(gestureState);
-			onPanResponderRelease: () => {
-				// panInner.resetAnimation();
-				Animated.spring(panInner, {
-					toValue: { x: 0, y: 0 },
-					useNativeDriver: true,
-				}).start();
-			},
-		}),
-	).current;
+export function Joystick({ x, y }: JoystickProps) {
+	const translateX = useSharedValue(0);
+	const translateY = useSharedValue(0);
+
+	const pan = Gesture.Pan()
+		.onUpdate((e) => {
+			const dx = e.translationX;
+			const dy = e.translationY;
+			const dist = Math.hypot(dx, dy);
+			if (dist > 50) {
+				const slope = dy / dx;
+				const denom = Math.sqrt(1 + slope * slope);
+				const capX = dx < 0 ? -50 / denom : 50 / denom;
+				const capY = capX * slope;
+				translateX.value = capX;
+				translateY.value = capY;
+			} else {
+				translateX.value = dx;
+				translateY.value = dy;
+			}
+		})
+		.onEnd(() => {
+			translateX.value = withSpring(0);
+			translateY.value = withSpring(0);
+		});
+
+	const style = useAnimatedStyle(() => ({
+		transform: [
+			{ translateX: translateX.value },
+			{ translateY: translateY.value },
+		],
+	}));
 
 	return (
 		<View style={[styles.buttonOuter, { left: x, top: y }]}>
-			<Animated.View
-				style={{
-					transform: [{ translateX: panInner.x }, { translateY: panInner.y }],
-				}}
-				{...panResInner.panHandlers}
-			>
-				<View style={styles.buttonInner}></View>
-			</Animated.View>
+			<GestureDetector gesture={pan}>
+				<Animated.View style={style}>
+					<View style={styles.buttonInner} />
+				</Animated.View>
+			</GestureDetector>
 		</View>
 	);
 }
-
 const styles = StyleSheet.create({
 	buttonOuter: {
 		position: "absolute",

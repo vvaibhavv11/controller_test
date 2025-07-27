@@ -11,15 +11,40 @@ import { useNavigation } from "@react-navigation/native";
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import { useSQLiteContext } from "expo-sqlite";
 import * as schema from "@/db/schema";
-import { ButtonCordinates } from "./Editing_layout";
-
-// const data = [
-// 	{ id: "1", title: "Apple" },
-// 	{ id: "2", title: "Banana" },
-// 	{ id: "3", title: "Mango" },
-// ];
+import LanPortScanner, { LSScanConfig } from "react-native-lan-port-scanner";
 
 export default function HomeScreen() {
+	React.useEffect(() => {
+		async function result() {
+			const networkInfo = await LanPortScanner.getNetworkInfo();
+            console.log(networkInfo)
+			const config1: LSScanConfig = {
+				networkInfo: networkInfo,
+				ports: [7879], //Specify port here
+				timeout: 1000, //Timeout for each thread in ms
+				threads: 150, //Number of threads
+			};
+			const cancelScanHandle = LanPortScanner.startScan(
+				config1, //or config2
+				(totalHosts: number, hostScanned: number) => {
+					console.log(hostScanned / totalHosts); //Show progress
+				},
+				(result) => {
+					console.log(result); //This will call after new ip/port found.
+				},
+				(results) => {
+					console.log(results); // This will call after scan end.
+				},
+			);
+
+			//You can cancel scan later
+			setTimeout(() => {
+				cancelScanHandle();
+			}, 5000);
+		}
+        result()
+	},[]);
+
 	const db = drizzle(useSQLiteContext(), { schema });
 	const data = db.select().from(schema.layouts).all();
 	const navigation = useNavigation();

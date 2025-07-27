@@ -9,6 +9,7 @@ import { drizzle } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migration from "@/drizzle/migrations";
 import { MainController } from "./components/MainController";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export type RootStackParamList = {
 	Home: undefined;
@@ -30,24 +31,29 @@ export default function App() {
 	const db = drizzle(expoDb);
 	const { success, error } = useMigrations(db, migration);
 	return (
-		<Suspense fallback={<ActivityIndicator size={"large"} />}>
-			<SQLiteProvider
-				databaseName={DATABASE_NAME}
-				options={{ enableChangeListener: true }}
-				useSuspense
-			>
-				<NavigationContainer>
-					<Stack.Navigator initialRouteName="Home">
-						<Stack.Screen name="Home" component={HomeScreen} />
-						<Stack.Screen
-							name="MainController"
-							component={MainController}
-							initialParams={{ layoutCor: { def: { px: 0, py: 0 } } }}
-						/>
-						<Stack.Screen name="EditingLayout" component={EditingLayout} />
-					</Stack.Navigator>
-				</NavigationContainer>
-			</SQLiteProvider>
-		</Suspense>
+		<GestureHandlerRootView style={{ flex: 1 }}>
+			<Suspense fallback={<ActivityIndicator size={"large"} />}>
+				<SQLiteProvider
+					databaseName={DATABASE_NAME}
+					options={{ enableChangeListener: true }}
+					useSuspense
+				>
+					<NavigationContainer>
+						<Stack.Navigator
+							initialRouteName="Home"
+							screenOptions={{ headerShown: false }}
+						>
+							<Stack.Screen name="Home" component={HomeScreen} />
+							<Stack.Screen
+								name="MainController"
+								component={MainController}
+								initialParams={{ layoutCor: { def: { px: 0, py: 0 } } }}
+							/>
+							<Stack.Screen name="EditingLayout" component={EditingLayout} />
+						</Stack.Navigator>
+					</NavigationContainer>
+				</SQLiteProvider>
+			</Suspense>
+		</GestureHandlerRootView>
 	);
 }
