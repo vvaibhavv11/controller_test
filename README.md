@@ -55,6 +55,7 @@ Navigate to the **Settings** tab in the app to configure the target IP address a
 - **Network:** WebSockets
 - **UI/Interactions:** React Native Gesture Handler, Reanimated, Lucide React Native
 
-## License
+## Status
 
-This project is private and intended for testing and development purposes.
+This project is complete and ready to use!
+g and development purposes.

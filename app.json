@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "controller_test",
-    "slug": "controller_test",
+    "name": "Controller",
+    "slug": "controller",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

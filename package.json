@@ -1,5 +1,5 @@
 {
-  "name": "controller_test",
+  "name": "controller",
   "main": "./app/index.tsx",
   "version": "1.0.0",
   "scripts": {
