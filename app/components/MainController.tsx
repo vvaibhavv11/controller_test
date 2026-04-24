@@ -14,10 +14,13 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
 import React from "react";
 import * as ScreenOrientation from "expo-screen-orientation";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Props = NativeStackScreenProps<RootStackParamList, "MainController">;
 
 export function MainController({ route }: Props) {
+	const wsRef = React.useRef<WebSocket | null>(null);
+	const wsRef1 = React.useRef<WebSocket | null>(null);
 	React.useEffect(() => {
 		const lock = async () => {
 			await ScreenOrientation.lockAsync(
@@ -26,6 +29,32 @@ export function MainController({ route }: Props) {
 		};
 
 		lock().catch(console.error);
+		(async () => {
+			const ip = await AsyncStorage.getItem("ipAddress");
+			const port = await AsyncStorage.getItem("port");
+			if (!ip || !port) {
+				console.error("Missing WebSocket config.");
+				return;
+			}
+
+			const ws = new WebSocket(`ws://${ip}:${port}`);
+			const ws1 = new WebSocket(`ws://${ip}:${port}`);
+			wsRef.current = ws;
+			wsRef1.current = ws1;
+
+			ws.onopen = () => console.log("WebSocket connected");
+			ws.onmessage = (e) => {
+				console.log("Incoming:", e.data);
+				// dispatch or setState to share data
+			};
+			ws.onerror = (e) => console.error("Socket error:", e);
+			ws.onclose = (e) => console.log("Socket closed:", e.code, e.reason);
+
+			return () => {
+				ws.close();
+				wsRef.current = null;
+			};
+		})();
 	}, []);
 	const { layoutCor } = route.params;
 
@@ -35,12 +64,14 @@ export function MainController({ route }: Props) {
 			<SafeAreaView style={styles.container}>
 				{buttonNames.map((name) => {
 					if (name) {
-						if (name === "L_Joystick" || name === "R_Joystick") {
+						if (name === "LS" || name === "RS") {
 							return (
 								<Joystick
 									key={name}
 									x={layoutCor[name].px}
 									y={layoutCor[name].py}
+                                    name={name}
+                                    ws={wsRef1}
 								></Joystick>
 							);
 						}
@@ -51,6 +82,7 @@ export function MainController({ route }: Props) {
 									name={name}
 									x={layoutCor[name].px}
 									y={layoutCor[name].py}
+									ws={wsRef}
 								></ABXYButton>
 							);
 						}
@@ -61,6 +93,7 @@ export function MainController({ route }: Props) {
 									x={layoutCor[name].px}
 									y={layoutCor[name].py}
 									name={name}
+									ws={wsRef}
 								>
 									<ChevronLeft />
 								</DpadsButton>
@@ -73,6 +106,7 @@ export function MainController({ route }: Props) {
 									x={layoutCor[name].px}
 									y={layoutCor[name].py}
 									name={name}
+									ws={wsRef}
 								>
 									<ChevronRight />
 								</DpadsButton>
@@ -85,6 +119,7 @@ export function MainController({ route }: Props) {
 									x={layoutCor[name].px}
 									y={layoutCor[name].py}
 									name={name}
+									ws={wsRef}
 								>
 									<ChevronUp />
 								</DpadsButton>
@@ -97,6 +132,7 @@ export function MainController({ route }: Props) {
 									x={layoutCor[name].px}
 									y={layoutCor[name].py}
 									name={name}
+									ws={wsRef}
 								>
 									<ChevronDown />
 								</DpadsButton>
@@ -108,6 +144,7 @@ export function MainController({ route }: Props) {
 								name={name}
 								x={layoutCor[name].px}
 								y={layoutCor[name].py}
+								ws={wsRef}
 							></RestButton>
 						);
 					}

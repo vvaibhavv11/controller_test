@@ -10,6 +10,9 @@ import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migration from "@/drizzle/migrations";
 import { MainController } from "./components/MainController";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import SettingsScreen from "./components/Setting";
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 
 export type RootStackParamList = {
 	Home: undefined;
@@ -26,9 +29,12 @@ declare global {
 	}
 }
 
-export default function App() {
-	const expoDb = openDatabaseSync(DATABASE_NAME);
-	const db = drizzle(expoDb);
+export const expoDb = openDatabaseSync(DATABASE_NAME, {
+	enableChangeListener: true,
+});
+export const db = drizzle(expoDb);
+
+export function ProjectStack() {
 	const { success, error } = useMigrations(db, migration);
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
@@ -38,22 +44,52 @@ export default function App() {
 					options={{ enableChangeListener: true }}
 					useSuspense
 				>
-					<NavigationContainer>
-						<Stack.Navigator
-							initialRouteName="Home"
-							screenOptions={{ headerShown: false }}
-						>
-							<Stack.Screen name="Home" component={HomeScreen} />
-							<Stack.Screen
-								name="MainController"
-								component={MainController}
-								initialParams={{ layoutCor: { def: { px: 0, py: 0 } } }}
-							/>
-							<Stack.Screen name="EditingLayout" component={EditingLayout} />
-						</Stack.Navigator>
-					</NavigationContainer>
+					<Stack.Navigator
+						initialRouteName="Home"
+						screenOptions={{ headerShown: false }}
+					>
+						<Stack.Screen name="Home" component={HomeScreen} />
+						<Stack.Screen
+							name="MainController"
+							component={MainController}
+							initialParams={{ layoutCor: { def: { px: 0, py: 0 } } }}
+						/>
+						<Stack.Screen name="EditingLayout" component={EditingLayout} />
+					</Stack.Navigator>
 				</SQLiteProvider>
 			</Suspense>
 		</GestureHandlerRootView>
+	);
+}
+
+const Tab = createBottomTabNavigator();
+
+function getTabBarStyle(route): ViewStyle | undefined {
+	const routeName = getFocusedRouteNameFromRoute(route) ?? "Home";
+	if (routeName === "MainController" || routeName === "EditingLayout") {
+		return { display: "none" } as ViewStyle;
+	}
+	return undefined;
+}
+
+export default function App() {
+	return (
+		<NavigationContainer>
+			<Tab.Navigator screenOptions={{ headerShown: false }}>
+				<Tab.Screen
+					name="mainHome"
+					component={ProjectStack}
+					options={({ route }) => ({
+						tabBarLabel: "Home",
+						tabBarStyle: getTabBarStyle(route),
+					})}
+				></Tab.Screen>
+				<Tab.Screen
+					name="Setting"
+					component={SettingsScreen}
+					options={{ tabBarLabel: "Setting" }}
+				></Tab.Screen>
+			</Tab.Navigator>
+		</NavigationContainer>
 	);
 }

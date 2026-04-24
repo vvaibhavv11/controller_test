@@ -8,45 +8,15 @@ import {
 } from "react-native";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { useNavigation } from "@react-navigation/native";
-import { drizzle } from "drizzle-orm/expo-sqlite";
+import { drizzle, useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { useSQLiteContext } from "expo-sqlite";
 import * as schema from "@/db/schema";
-import LanPortScanner, { LSScanConfig } from "react-native-lan-port-scanner";
+import { db, expoDb } from "./App";
 
 export default function HomeScreen() {
-	React.useEffect(() => {
-		async function result() {
-			const networkInfo = await LanPortScanner.getNetworkInfo();
-            console.log(networkInfo)
-			const config1: LSScanConfig = {
-				networkInfo: networkInfo,
-				ports: [7879], //Specify port here
-				timeout: 1000, //Timeout for each thread in ms
-				threads: 150, //Number of threads
-			};
-			const cancelScanHandle = LanPortScanner.startScan(
-				config1, //or config2
-				(totalHosts: number, hostScanned: number) => {
-					console.log(hostScanned / totalHosts); //Show progress
-				},
-				(result) => {
-					console.log(result); //This will call after new ip/port found.
-				},
-				(results) => {
-					console.log(results); // This will call after scan end.
-				},
-			);
-
-			//You can cancel scan later
-			setTimeout(() => {
-				cancelScanHandle();
-			}, 5000);
-		}
-        result()
-	},[]);
-
-	const db = drizzle(useSQLiteContext(), { schema });
-	const data = db.select().from(schema.layouts).all();
+	// const db = drizzle(useSQLiteContext(), { schema });
+	// const db = drizzle(expoDb);
+	const { data: listState } = useLiveQuery(db.select().from(schema.layouts));
 	const navigation = useNavigation();
 	const lock = async () => {
 		await ScreenOrientation.lockAsync(
@@ -57,7 +27,7 @@ export default function HomeScreen() {
 	return (
 		<View style={styles.container}>
 			<FlatList
-				data={data}
+				data={listState}
 				keyExtractor={(item) => String(item.id)}
 				renderItem={({ item }) => (
 					<TouchableOpacity

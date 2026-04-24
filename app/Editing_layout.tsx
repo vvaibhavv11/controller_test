@@ -100,7 +100,7 @@ export default function EditingLayout() {
 			<SafeAreaView style={styles.container}>
 				{visibleButtons.map((name) => {
 					if (name) {
-						if (name === "L_Joystick" || name === "R_Joystick") {
+						if (name === "LS" || name === "RS") {
 							return (
 								<Draggable key={name} onChange={() => measurePosition(name)}>
 									<View

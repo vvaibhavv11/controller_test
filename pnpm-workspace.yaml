@@ -2,3 +2,8 @@ ignoredBuiltDependencies:
   - unrs-resolver
 
 nodeLinker: hoisted
+
+onlyBuiltDependencies:
+  - core-js
+  - esbuild
+  - react-native-lanscan

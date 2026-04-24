@@ -1,20 +1,36 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { runOnJS } from "react-native-reanimated";
 
 export function ABXYButton({
 	name,
 	x,
 	y,
+	ws,
 }: {
 	name: string;
 	x: number;
 	y: number;
+	ws: React.RefObject<WebSocket | null>;
 }) {
-    // it works
+	// it works
+	const sendPress = (pressed: boolean) => {
+		const sock = ws.current;
+		if (sock?.readyState === WebSocket.OPEN) {
+			sock.send(JSON.stringify({ name, is_pressed: pressed }));
+		}
+	};
 	const p = Gesture.Pan()
-		.onBegin(() => console.log(`${name} in`))
-		.onFinalize(() => console.log(`${name} out`));
+		.onBegin(() => {
+			"worklet";
+			runOnJS(sendPress)(true);
+		})
+		.onFinalize(() => {
+			"worklet";
+			runOnJS(sendPress)(false);
+		});
+
 	return (
 		<GestureDetector gesture={p}>
 			<View style={[styles.button, { left: x, top: y }]}>

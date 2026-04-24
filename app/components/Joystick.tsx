@@ -5,13 +5,31 @@ import Animated, {
 	useSharedValue,
 	useAnimatedStyle,
 	withSpring,
+	runOnJS,
 } from "react-native-reanimated";
 
-type JoystickProps = { x: number; y: number };
+type JoystickProps = {
+	x: number;
+	y: number;
+	name: string;
+	ws: React.RefObject<WebSocket | null>;
+};
 
-export function Joystick({ x, y }: JoystickProps) {
+export function Joystick({ x, y, name, ws }: JoystickProps) {
+	const sendJoystick = (xp: number, yp: number) => {
+		const sock = ws.current;
+		if (sock?.readyState === WebSocket.OPEN) {
+			sock.send(JSON.stringify({ name, x: xp, y: yp }));
+		}
+	};
 	const translateX = useSharedValue(0);
 	const translateY = useSharedValue(0);
+
+	const outerCircule = Gesture.Tap().onBegin((e) => {
+		console.log(`value of x ${e.x} and y ${e.y} `);
+		translateX.value = -e.x;
+		translateY.value = -e.y;
+	});
 
 	const pan = Gesture.Pan()
 		.onUpdate((e) => {
@@ -25,14 +43,19 @@ export function Joystick({ x, y }: JoystickProps) {
 				const capY = capX * slope;
 				translateX.value = capX;
 				translateY.value = capY;
+				("worklet");
+				runOnJS(sendJoystick)(Math.floor(capX), -Math.floor(capY));
 			} else {
 				translateX.value = dx;
 				translateY.value = dy;
+				("worklet");
+				runOnJS(sendJoystick)(Math.floor(dx), -Math.floor(dy));
 			}
 		})
 		.onEnd(() => {
 			translateX.value = withSpring(0);
 			translateY.value = withSpring(0);
+			runOnJS(sendJoystick)(0, 0);
 		});
 
 	const style = useAnimatedStyle(() => ({
@@ -43,13 +66,15 @@ export function Joystick({ x, y }: JoystickProps) {
 	}));
 
 	return (
-		<View style={[styles.buttonOuter, { left: x, top: y }]}>
-			<GestureDetector gesture={pan}>
-				<Animated.View style={style}>
-					<View style={styles.buttonInner} />
-				</Animated.View>
-			</GestureDetector>
-		</View>
+		<GestureDetector gesture={outerCircule}>
+			<View style={[styles.buttonOuter, { left: x, top: y }]}>
+				<GestureDetector gesture={pan}>
+					<Animated.View style={style}>
+						<View style={styles.buttonInner} />
+					</Animated.View>
+				</GestureDetector>
+			</View>
+		</GestureDetector>
 	);
 }
 const styles = StyleSheet.create({

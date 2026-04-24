@@ -1,6 +1,6 @@
 export const xboxButtons = {
-    L_Joystick: "L_Joystick",
-    R_Joystick: "R_Joystick",
+    LS: "LS",
+    RS: "RS",
     D_LEFT: "D_LEFT",
     D_RIGHT: "D_RIGHT",
     D_UP: "D_UP",
