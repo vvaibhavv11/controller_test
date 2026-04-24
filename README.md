@@ -1,50 +1,60 @@
-# Welcome to your Expo app 👋
+# Controller Test
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native mobile application built with Expo that transforms your device into a fully customizable, virtual game controller. Connect to your gaming rig or server over WebSockets to transmit controller inputs over your local network.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Virtual Gamepad:** Emulates a standard controller with Joysticks (LS, RS), D-pads, and Action buttons (A, B, X, Y).
+- **Customizable Layouts:** Use the built-in layout editor to drag and drop buttons exactly where you want them.
+- **Local Storage:** Save multiple custom layouts directly on your device using SQLite (via Drizzle ORM).
+- **Low-Latency WebSockets:** Sends real-time controller inputs to a configured IP and Port.
+- **Orientation Lock:** Automatically switches to landscape mode for gameplay and layout editing.
 
+## Prerequisites
+
+- Node.js (v18+)
+- npm, yarn, or pnpm
+- [Expo CLI](https://docs.expo.dev/get-started/installation/)
+- Expo Go app on your mobile device (or configured iOS/Android emulators)
+
+## Getting Started
+
+1. **Install dependencies:**
    ```bash
-   npm install
+   pnpm install
+   # or npm install / yarn install
    ```
 
-2. Start the app
-
+2. **Start the development server:**
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+3. **Run on your device:**
+   - Scan the QR code from the terminal output using the **Expo Go** app on your phone.
+   - Alternatively, press `a` in the terminal to run on an Android emulator, or `i` for an iOS simulator.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Configuration
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Navigate to the **Settings** tab in the app to configure the target IP address and Port of your server. The app will open WebSocket connections (`ws://<ip>:<port>`) to transmit your joystick and button inputs.
 
-## Get a fresh project
+## Project Structure
 
-When you're ready, run:
+- `app/` - The main application code including screens and file-based routing.
+  - `components/` - Reusable UI components (Buttons, Joysticks, Draggables).
+  - `Editing_layout.tsx` - Screen for creating custom button layouts.
+  - `HomePage.tsx` - Main screen to select saved layouts.
+- `db/` - Database schema definitions using Drizzle ORM.
+- `drizzle/` - Database migrations.
 
-```bash
-npm run reset-project
-```
+## Technologies Used
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+- **Framework:** React Native / Expo
+- **Navigation:** React Navigation (Native Stack, Bottom Tabs)
+- **Database:** Expo SQLite + Drizzle ORM
+- **Network:** WebSockets
+- **UI/Interactions:** React Native Gesture Handler, Reanimated, Lucide React Native
 
-## Learn more
+## License
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This project is private and intended for testing and development purposes.
